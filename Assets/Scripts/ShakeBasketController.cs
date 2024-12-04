@@ -3,12 +3,13 @@ using UnityEngine;
 
 public class ShakeBasketController : MonoBehaviour
 {
-    public GameObject dicePrefab;
-    public Transform[] spawnPosition;
+    public GameObject dicePrefab; // 주사위 프리팹
+    public Transform[] spawnPosition; // 주사위 스폰 포지션
+    public DiceController[] diceControllers; // 주사위 컨트롤러
 
-    public float shakeDuration = 1f; // 흔드는 시간
-    public float shakeMagnitude = 0.5f; // 흔들림 크기
-    public float shakeSpeed = 5f; // 흔들림 속도
+    public float sensitivity = 0.1f; // 마우스 감도
+    public float maxShakeRange = 1f; // 컵의 최대 이동 범위
+
     public float rotationDuration = 1f; // 회전에 걸리는 시간
 
     private Vector3 initialPosition; // 오브젝트의 초기 위치
@@ -18,49 +19,51 @@ public class ShakeBasketController : MonoBehaviour
     {
         InitializeDice();
         initialPosition = transform.localPosition;
-        StartShake();
     }
+
+    private void Update()
+    {
+        // 마우스 움직임 감지
+        float mouseX = Input.GetAxis("Mouse X"); // 마우스의 X축 움직임
+        float mouseY = Input.GetAxis("Mouse Y"); // 마우스의 Y축 움직임
+
+        Vector3 shakeOffset = new Vector3(mouseX, 0, mouseY) * sensitivity; // y축 움직임 제한(위 아래)
+        shakeOffset = Vector3.ClampMagnitude(shakeOffset, maxShakeRange); // 컵 이동 범위 제한
+
+        RollingDice(shakeOffset.x, shakeOffset.z); // 주사위 움직임
+
+        transform.position = initialPosition + shakeOffset; // 컵의 새 위치
+    }
+
+    // 주사위를 컵에 넣는 메서드
     void InitializeDice()
     {
-        /*float randx = random.range(spawnposition.position.x - 0.2f, spawnposition.position.x + 0.2f);
-        float randy = random.range(spawnposition.position.y - 0.2f, spawnposition.position.y + 0.2f);
-        float randz = random.range(spawnposition.position.z - 0.2f, spawnposition.position.z + 0.2f);
-
-        vector3 randposition = new vector3(randx, randy, randz);*/
+        diceControllers = new DiceController[5];
 
         for (int i=0; i<5; i++)
         {
             Vector3 position = new Vector3(spawnPosition[i].position.x, spawnPosition[i].position.y, spawnPosition[i].position.z);
-            Instantiate(dicePrefab, position, Quaternion.identity);
+
+            GameObject dice = Instantiate(dicePrefab, position, Quaternion.identity); ;
+
+            diceControllers[i] = dice.GetComponent<DiceController>();
         }
     }
 
-    public void StartShake()
+    // 주사위를 섞는 메서드
+    void RollingDice(float x, float z)
     {
-        currentShakeTime = shakeDuration;
-        StartCoroutine(ShakeHorizontally());
-    }
-
-    private IEnumerator ShakeHorizontally()
-    {
-        yield return new WaitForSeconds(1f);
-        while (currentShakeTime > 0)
+        foreach(DiceController dice in diceControllers)
         {
-            float offsetX = Mathf.Sin(Time.time * shakeSpeed) * shakeMagnitude;
-
-            transform.localPosition = new Vector3(
-                initialPosition.x + offsetX,
-                initialPosition.y,
-                initialPosition.z
-            );
-
-            currentShakeTime -= Time.deltaTime;
-            yield return null;
+            if (!dice)
+            {
+                Debug.LogWarning("No Dice");
+            }
+            dice.AddForceToDice(x,z);
         }
-
-        transform.localPosition = initialPosition; // 흔들림이 끝난 후 원래 위치로 복귀
-        StartCoroutine(SlowRotateAroundPivot(125f)); // Z축 기준으로 천천히 회전
     }
+
+
 
     private IEnumerator SlowRotateAroundPivot(float targetAngle)
     {

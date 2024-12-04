@@ -808,9 +808,9 @@ MonoBehaviour:
   - {fileID: 1425618264}
   - {fileID: 1752142510}
   - {fileID: 684586038}
-  shakeDuration: 10
-  shakeMagnitude: 1
-  shakeSpeed: 10
+  diceControllers: []
+  sensitivity: 0.5
+  maxShakeRange: 0.5
   rotationDuration: 1
 --- !u!64 &759642314
 MeshCollider:

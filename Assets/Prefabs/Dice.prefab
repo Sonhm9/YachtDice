@@ -149,6 +149,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61e6b5c9ae7f9204bb2b14a59bd10aa3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testDirenction: {x: -1, y: 0, z: 0}
-  forceMagnitude: 20
+  diceState: 0
+  forceMagnitude: 30
   rb: {fileID: 7647472813793427428}

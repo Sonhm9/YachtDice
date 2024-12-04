@@ -40,14 +40,14 @@ public class MaterialRandomizerScript : MonoBehaviour
     public void findMaterialSpheres()
     {
         gameObjects.Clear();
-        foreach (var gameObj in FindObjectsOfType(typeof(GameObject)) as GameObject[])
+        /*foreach (var gameObj in FindObjectsOfType(typeof(GameObject)) as GameObject[])
         {
             if (gameObj.name == "Material Sphere")
             {
 				//Debug.Log(gameObj.name);
                 gameObjects.Add(gameObj);
             }
-        }
+        }*/
 
     }
 }

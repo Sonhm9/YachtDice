@@ -39,7 +39,6 @@ public class DiceController : MonoBehaviour
     public void GetDiceNumber(int number)
     {
         diceNumber = number;
-        Debug.Log(diceNumber);
     }
 
     // 콜라이더를 키는 메서드
@@ -61,33 +60,29 @@ public class DiceController : MonoBehaviour
     }
 
     // 주사위 눈에 따라 회전값을 적용
-    public void SetRotationForDicenumber()
+    public Quaternion SetRotationForDicenumber()
     {
         switch (diceNumber)
         {
             case 1:
-                transform.Rotate(-90, 0, 0);
-                break;
+                return Quaternion.Euler(-90, 0, 0);
 
             case 2:
-                transform.Rotate(-0, 0, 0);
-                break;
+                return Quaternion.Euler(0, 0, 0);
 
             case 3:
-                transform.Rotate(0, 0, -90);
-                break;
+                return Quaternion.Euler(-0, 0, -90);
 
             case 4:
-                transform.Rotate(0, 0, 90);
-                break;
+                return Quaternion.Euler(0, 0, 90);
 
             case 5:
-                transform.Rotate(-180, 0, 0);
-                break;
+                return Quaternion.Euler(-180, 0, 0);
 
             case 6:
-                transform.Rotate(90, 0, 0);
-                break;
+                return Quaternion.Euler(90, 0, 0);
+            default:
+                return Quaternion.Euler(0, 0, 0);
         }
     }
 

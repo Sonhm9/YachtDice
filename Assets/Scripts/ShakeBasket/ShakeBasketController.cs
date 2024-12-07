@@ -22,8 +22,9 @@ public class ShakeBasketController : MonoBehaviour
     void Start()
     {
         chooseMode = GetComponent<ChooseModeBehaviour>();
-        InitializeDice(5);
         initialPosition = transform.localPosition;
+        SetShakeMode();
+
     }
 
     private void Update()
@@ -51,6 +52,12 @@ public class ShakeBasketController : MonoBehaviour
             }
         }
     }
+    public void SetShakeMode()
+    {
+        ModeManager.Instance.currentMode = ModeManager.Mode.Shake;
+        gameObject.transform.position = initialPosition;
+        InitializeDice(chooseMode.currentDiceCount);
+    }
 
     // 주사위를 컵에 넣는 메서드
     void InitializeDice(int count)
@@ -59,10 +66,9 @@ public class ShakeBasketController : MonoBehaviour
         {
             Vector3 position = new Vector3(spawnPos[i].position.x, spawnPos[i].position.y, spawnPos[i].position.z);
 
-            GameObject dice = Instantiate(dicePrefab, position, Random.rotation);
+            DiceController dice = Instantiate(dicePrefab, position, Random.rotation).GetComponent<DiceController>();
 
-            diceControllers.Add(dice.GetComponent<DiceController>());
-            //diceControllers[i] = dice.GetComponent<DiceController>();
+            diceControllers.Add(dice);
         }
     }
 
@@ -93,7 +99,7 @@ public class ShakeBasketController : MonoBehaviour
         while (elapsedTime < 0.25f)
         {
             float xPos = Mathf.Lerp(startXpos, endXpos, elapsedTime / rotationDuration);
-            transform.position = new Vector3(xPos, initialPosition.y, initialPosition.z);
+            transform.position = new Vector3(xPos * 1.1f, initialPosition.y, initialPosition.z);
             foreach (DiceController dice in diceControllers)
             {
                 RollingDice(xPos, 0);
@@ -146,11 +152,13 @@ public class ShakeBasketController : MonoBehaviour
         }
 
         // 일정 시간 후 콜라이더를 켜서 주사위 눈 검출
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2.5f);
         foreach (DiceController dice in diceControllers)
         {
             dice.OnColliderOpen();
         }
+
+        yield return new WaitForSeconds(0.5f);
 
         chooseMode.GetDiceList(); // 주사위 객체 넘겨주기
         diceControllers.Clear(); // 주사위 리스트 초기화
@@ -164,5 +172,5 @@ public class ShakeBasketController : MonoBehaviour
         transform.rotation = Quaternion.identity;
     }
 
-    
+
 }

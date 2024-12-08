@@ -30,8 +30,10 @@ public class ChooseModeBehaviour : MonoBehaviour
 
     void Update()
     {
+        // 현재 선택모드일때 && 선택가능상태 일때
         if (ModeManager.Instance.currentMode == ModeManager.Mode.Choose && selectAble)
         {
+            // 선택 포인터 범위 설정
             if (selectPointIdx > chooseList.Count - 1)
             {
                 selectPointIdx = chooseList.Count - 1;
@@ -41,40 +43,53 @@ public class ChooseModeBehaviour : MonoBehaviour
                 selectPointIdx = 0;
             }
 
+            // 선택 포인터 위치
             selectUI.LocateSelectedDice(chooseList[selectPointIdx].gameObject.transform.position.x);
 
+            // D키 눌렀을 때
             if (Input.GetKeyDown(KeyCode.D))
             {
                 selectPointIdx++;
                 
             }
+            // A키 눌렀을 때
             if (Input.GetKeyDown(KeyCode.A))
             {
                 selectPointIdx--;
                 
             }
+            // E키 눌렀을 때
             if (Input.GetKeyDown(KeyCode.E))
             {
+                // 선택한 주사위를 위로 이동
                 StartCoroutine(MoveToPosition(chooseList[selectPointIdx].gameObject, selectPosition[selectList.Count].position, chooseList[selectPointIdx].SetRotationForDicenumber(), 0.25f));
 
+                // 선택된 리스트로 이동
                 selectList.Add(chooseList[selectPointIdx]);
                 chooseList.Remove(chooseList[selectPointIdx]);
 
-                currentDiceCount--;
+                currentDiceCount--; // 현재 주사위 갯수 감소
+
+                // 주사위 위치 재정렬
+                StartCoroutine(SetChooseList());
+
+                // 주사위를 모두 선택했을 때
                 if (currentDiceCount <= 0)
                 {
-                    shakeBasketController.SetShakeMode();
+                    TurnManager.Instance.SetScoreMode();
+                    selectAble = false;
+                    selectUI.UnactiveSelectUI();
                     Debug.Log("없음");
                 }
 
-                StartCoroutine(SetChooseList());
-
             }
+            // Q키를 눌렀을 때
             if (Input.GetKeyDown(KeyCode.Q))
             {
+                // 선택되지 않은 주사위 삭제
                 DestoryNoneSelectedDice();
-                selectUI.UnactiveSelectUI();
-                shakeBasketController.SetShakeMode();
+                selectUI.UnactiveSelectUI(); // UI 비활성화
+                shakeBasketController.SetShakeMode(); // 섞기 모드로 전환
             }
         }
     }
@@ -82,6 +97,8 @@ public class ChooseModeBehaviour : MonoBehaviour
     // 주사위 객체 가져오기
     public void GetDiceList()
     {
+        TurnManager.Instance.NextChoose();
+
         for(int i=0; i<currentDiceCount; i++)
         {
             // shakeBasket에서 가져옴
@@ -100,11 +117,43 @@ public class ChooseModeBehaviour : MonoBehaviour
     // 선택되지 못한 주사위 삭제
     public void DestoryNoneSelectedDice()
     {
-        selectPointIdx = 0;
-        selectAble = false;
+        selectPointIdx = 0; // 포인터 0으로 재배치
+        selectAble = false; // 선택 불가능 상태
+        // 주사위 오브젝트 모두 삭제
         foreach(DiceController dice in chooseList)
         {
             Destroy(dice.gameObject);
+        }
+        // 선택 리스트 모두 삭제
+        chooseList.Clear();
+    }
+
+    // 모두 자동 선택하는 루틴
+    public IEnumerator AutoSelectRoutine()
+    {
+        selectAble = false;
+        selectUI.UnactiveSelectUI();
+
+        yield return new WaitForSeconds(1);
+
+        for(int i=0; i<chooseList.Count; i++)
+        {
+            // 선택한 주사위를 위로 이동
+            StartCoroutine(MoveToPosition(chooseList[i].gameObject, selectPosition[selectList.Count].position, chooseList[i].SetRotationForDicenumber(), 0.25f));
+
+            // 선택된 리스트로 이동
+            selectList.Add(chooseList[selectPointIdx]);
+
+            currentDiceCount--; // 현재 주사위 갯수 감소
+
+            // 주사위를 모두 선택했을 때
+            if (currentDiceCount <= 0)
+            {
+                TurnManager.Instance.SetScoreMode();
+                Debug.Log("없음");
+            }
+
+            yield return new WaitForSeconds(0.1f);
         }
         chooseList.Clear();
     }
@@ -112,6 +161,7 @@ public class ChooseModeBehaviour : MonoBehaviour
     // 선택가능하도록 위치시키는 루틴
     public IEnumerator SetChooseList()
     {
+        // 주사위 갯수에 따라 정렬
         float offset = (currentDiceCount - 1) * scaleFactor / 2.0f;
         for (int i = 0; i < currentDiceCount; i++)
         {
@@ -120,10 +170,18 @@ public class ChooseModeBehaviour : MonoBehaviour
             float x = i * scaleFactor - offset;
             Vector3 targetPosition = new Vector3(x, choosePosition.y, choosePosition.z);
 
-            yield return StartCoroutine(MoveToPosition(chooseList[i].gameObject, targetPosition, chooseList[i].SetRotationForDicenumber(), 0.1f)); // 이동 시간 0.5초
+            // 오브젝트 이동 루틴
+            yield return StartCoroutine(MoveToPosition(chooseList[i].gameObject, targetPosition, chooseList[i].SetRotationForDicenumber(), 0.1f));
+        }
+        // UI 활성화 및 선택 가능상태
+        selectAble = true;
+        selectUI.ActiveSelectUI();
+        TurnManager.Instance.MoveScoreCanvas();
 
-            selectUI.ActiveSelectUI();
-            selectAble = true;
+        // 3번째 던지기 일 때
+        if (TurnManager.Instance.CheckMaxChooseCount())
+        {
+            StartCoroutine(AutoSelectRoutine());
         }
     }
 
@@ -143,10 +201,10 @@ public class ChooseModeBehaviour : MonoBehaviour
             dice.transform.position = Vector3.Lerp(startPosition, targetPosition, t);
             dice.transform.rotation = Quaternion.Lerp(startRotation, targetRotation, t);
 
-            yield return null; // 다음 프레임으로
+            yield return null;
         }
 
-        // 정확히 목표 위치/회전으로 설정
+        // 최종 목표 위치,회전 설정
         dice.transform.position = targetPosition;
         dice.transform.rotation = targetRotation;
     }

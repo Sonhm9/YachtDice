@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ShakeBasketController : MonoBehaviour
 {
+    public GameObject shakeUI; // 쉐이크 UI
     public GameObject dicePrefab; // 주사위 프리팹
     public Transform throwingPos; // 주사위 던질 때 포지션
     public Transform[] spawnPos; // 주사위 스폰 포지션
@@ -52,11 +53,15 @@ public class ShakeBasketController : MonoBehaviour
             }
         }
     }
+
+    // 쉐이크 모드로 전환
     public void SetShakeMode()
     {
+        shakeUI.SetActive(true);
         ModeManager.Instance.currentMode = ModeManager.Mode.Shake;
         gameObject.transform.position = initialPosition;
         InitializeDice(chooseMode.currentDiceCount);
+        TurnManager.Instance.ReturnScoreCanvas();
     }
 
     // 주사위를 컵에 넣는 메서드
@@ -89,6 +94,7 @@ public class ShakeBasketController : MonoBehaviour
     private IEnumerator ThrowingDiceRoutine(Vector3 targetPosition)
     {
         ModeManager.Instance.currentMode = ModeManager.Mode.Choose; // 선택 모드로 전환
+        shakeUI.SetActive(false);
 
         // 시간과 목표 위치 설정
         float elapsedTime = 0f;

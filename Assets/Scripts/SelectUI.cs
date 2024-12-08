@@ -11,6 +11,8 @@ public class SelectUI : MonoBehaviour
     {
         chooseMode = GetComponent<ChooseModeBehaviour>();
     }
+
+    // 포인터 위치 메서드
     public void LocateSelectedDice(float x)
     {
         float adjustment = -x * 0.08f;
@@ -18,6 +20,7 @@ public class SelectUI : MonoBehaviour
         selectPointer.transform.position = new Vector3(correctedX, selectPointer.transform.position.y, selectPointer.transform.position.z);
     }
 
+    // UI 활성화 메서드
     public void ActiveSelectUI()
     {
         if (chooseMode.selectAble)
@@ -27,6 +30,7 @@ public class SelectUI : MonoBehaviour
         }
     }
 
+    // UI 비활성화 메서드
     public void UnactiveSelectUI()
     {
         selectPointer.SetActive(false);

@@ -71,7 +71,7 @@ public class ChooseModeBehaviour : MonoBehaviour
                 currentDiceCount--; // 현재 주사위 갯수 감소
 
                 // 주사위 위치 재정렬
-                StartCoroutine(SetChooseList());
+                StartCoroutine(ArrangeChooseList());
 
                 // 주사위를 모두 선택했을 때
                 if (currentDiceCount <= 0)
@@ -79,7 +79,6 @@ public class ChooseModeBehaviour : MonoBehaviour
                     TurnManager.Instance.SetScoreMode();
                     selectAble = false;
                     selectUI.UnactiveSelectUI();
-                    Debug.Log("없음");
                 }
 
             }
@@ -89,6 +88,9 @@ public class ChooseModeBehaviour : MonoBehaviour
                 // 선택되지 않은 주사위 삭제
                 DestoryNoneSelectedDice();
                 selectUI.UnactiveSelectUI(); // UI 비활성화
+
+                ScoreManager.Instance.PublishClearScore(); // 모든 값 요소 삭제
+
                 shakeBasketController.SetShakeMode(); // 섞기 모드로 전환
             }
         }
@@ -114,6 +116,17 @@ public class ChooseModeBehaviour : MonoBehaviour
         StartCoroutine(SetChooseList());
     }
 
+    // 다시 턴이 돌아왔을때 초기화
+    public void ReturnShake()
+    {
+        currentDiceCount = maxDiceCount;
+        foreach(var obj in selectList)
+        {
+            Destroy(obj.gameObject);
+        }
+        selectList.Clear();
+    }
+
     // 선택되지 못한 주사위 삭제
     public void DestoryNoneSelectedDice()
     {
@@ -134,7 +147,7 @@ public class ChooseModeBehaviour : MonoBehaviour
         selectAble = false;
         selectUI.UnactiveSelectUI();
 
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.5f);
 
         for(int i=0; i<chooseList.Count; i++)
         {
@@ -162,6 +175,28 @@ public class ChooseModeBehaviour : MonoBehaviour
     public IEnumerator SetChooseList()
     {
         // 주사위 갯수에 따라 정렬
+        StartCoroutine(ArrangeChooseList());
+
+        // 계산해서 띄우기
+        ScoreManager.Instance.AddScoreList(selectList, chooseList);
+        ScoreManager.Instance.PublishUpdateScore();
+        yield return StartCoroutine(ScoreManager.Instance.GenealogyText());
+
+        // UI 활성화 및 선택 가능상태
+        selectAble = true;
+        selectUI.ActiveSelectUI();
+        TurnManager.Instance.MoveScoreCanvas();
+
+        // 3번째 던지기 일 때
+        if (TurnManager.Instance.CheckMaxChooseCount())
+        {
+            StartCoroutine(AutoSelectRoutine());
+        }
+    }
+
+    public IEnumerator ArrangeChooseList()
+    {
+        // 주사위 갯수에 따라 정렬
         float offset = (currentDiceCount - 1) * scaleFactor / 2.0f;
         for (int i = 0; i < currentDiceCount; i++)
         {
@@ -172,16 +207,6 @@ public class ChooseModeBehaviour : MonoBehaviour
 
             // 오브젝트 이동 루틴
             yield return StartCoroutine(MoveToPosition(chooseList[i].gameObject, targetPosition, chooseList[i].SetRotationForDicenumber(), 0.1f));
-        }
-        // UI 활성화 및 선택 가능상태
-        selectAble = true;
-        selectUI.ActiveSelectUI();
-        TurnManager.Instance.MoveScoreCanvas();
-
-        // 3번째 던지기 일 때
-        if (TurnManager.Instance.CheckMaxChooseCount())
-        {
-            StartCoroutine(AutoSelectRoutine());
         }
     }
 

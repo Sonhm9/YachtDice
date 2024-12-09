@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class TurnManager : MonoBehaviour
@@ -7,6 +8,10 @@ public class TurnManager : MonoBehaviour
     public float targetX; // 목표 X 위치
     public float moveSpeed = 500f; // 이동 속도 (픽셀/초)
 
+    public TextMeshProUGUI chooseTurnText;
+    public TextMeshProUGUI turnText;
+    public GameObject pointer;
+
     int maxTurn = 12;
     int currentTurn = 1;
 
@@ -14,8 +19,6 @@ public class TurnManager : MonoBehaviour
     int currentChoose = 0;
 
     float initialPosition;
-
-
 
     static TurnManager instance;
     static public TurnManager Instance
@@ -58,6 +61,7 @@ public class TurnManager : MonoBehaviour
         Debug.Log("Score");
         currentChoose = 0;
 
+        pointer.SetActive(true);
         ModeManager.Instance.currentMode = ModeManager.Mode.Score;
     }
 
@@ -74,14 +78,27 @@ public class TurnManager : MonoBehaviour
         }
     }
 
+    public void NextTurn()
+    {
+        currentTurn++;
+        if (currentTurn > maxTurn)
+        {
+
+        }
+        turnText.text = currentTurn + "/" + maxTurn;
+    }
+
+    // 스코어 캔버스를 이동시키는 메서드
     public void MoveScoreCanvas()
     {
         StartCoroutine(ScoreCanvasMoving(scoreCanvas,targetX,moveSpeed));
     }
 
+    // 스코어 캔버스를 다시 돌려놓는 메서드
     public void ReturnScoreCanvas()
     {
         StartCoroutine(ScoreCanvasMoving(scoreCanvas, initialPosition, moveSpeed));
+        chooseTurnText.text = (currentChoose + 1).ToString() + " Turn";
     }
 
     // ScoreCanvas를 이동시키는 루틴

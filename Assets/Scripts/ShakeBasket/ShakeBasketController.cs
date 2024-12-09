@@ -58,9 +58,12 @@ public class ShakeBasketController : MonoBehaviour
     public void SetShakeMode()
     {
         shakeUI.SetActive(true);
+
         ModeManager.Instance.currentMode = ModeManager.Mode.Shake;
+
         gameObject.transform.position = initialPosition;
         InitializeDice(chooseMode.currentDiceCount);
+
         TurnManager.Instance.ReturnScoreCanvas();
     }
 

@@ -83,7 +83,8 @@ public class TurnManager : MonoBehaviour
         currentTurn++;
         if (currentTurn > maxTurn)
         {
-
+            GameManager.Instance.EndGame();
+            return;
         }
         turnText.text = currentTurn + "/" + maxTurn;
     }

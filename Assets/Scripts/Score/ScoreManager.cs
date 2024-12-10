@@ -21,6 +21,8 @@ public class ScoreManager : MonoBehaviour
 
     public List<IScore> scores = new List<IScore>();
 
+    AudioSource audioSource;
+
     public enum Genealogy
     {
         None,
@@ -59,7 +61,7 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-        scores.Add(new Ones());
+        audioSource = GetComponent<AudioSource>();
     }
 
     // 스코어 업데이트 실행
@@ -72,7 +74,7 @@ public class ScoreManager : MonoBehaviour
     public void PublishClearScore()
     {
         scoreList.Clear();
-        //totalValue = 0;
+        maxValue = 0;
         clearValue?.Invoke();
         genealogy = Genealogy.None;
     }
@@ -86,29 +88,34 @@ public class ScoreManager : MonoBehaviour
             {
                 case Genealogy.FourofKind:
                     Debug.Log("FourofKind");
+                    audioSource.Play();
                     scoreText.gameObject.SetActive(true);
                     scoreText.text = "Four Of Kind";
                     break;
 
                 case Genealogy.FullHouse:
+                    audioSource.Play();
                     Debug.Log("FullHouse");
                     scoreText.gameObject.SetActive(true);
                     scoreText.text = "Full House";
                     break;
 
                 case Genealogy.SmallStraight:
+                    audioSource.Play();
                     Debug.Log("SmallStraight");
                     scoreText.gameObject.SetActive(true);
                     scoreText.text = "Small Straight";
                     break;
 
                 case Genealogy.LargeStraight:
+                    audioSource.Play();
                     Debug.Log("LargeStraight");
                     scoreText.gameObject.SetActive(true);
                     scoreText.text = "Large Straight";
                     break;
 
                 case Genealogy.Yacht:
+                    audioSource.Play();
                     Debug.Log("Yacht");
                     scoreText.gameObject.SetActive(true);
                     scoreText.text = "Yacht";

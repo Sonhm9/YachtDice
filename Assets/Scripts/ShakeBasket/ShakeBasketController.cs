@@ -12,23 +12,31 @@ public class ShakeBasketController : MonoBehaviour
     public Transform readyPos; // 준비상태 바스켓 포지션
     public List<DiceController> diceControllers = new List<DiceController>(); // 주사위 컨트롤러
 
-    public float sensitivity = 0.1f; // 마우스 감도
-    public float maxShakeRange = 1f; // 컵의 최대 이동 범위
+    public float sensitivity = 10f; // 마우스 감도
+    public float maxShakeRange = 0.5f; // 컵의 최대 이동 범위
 
     public float rotationDuration = 0.25f; // 회전에 걸리는 시간
 
     private Vector3 initialPosition; // 오브젝트의 초기 위치
+    AudioSource audioSource;
+    public AudioClip ThroingAudioclip;
+    public AudioClip diceAudioClip;
+
+    private float audioCooldown = 0.25f; // 쿨다운 시간 (초)
+    private float lastPlayTime = 0f;
     ChooseModeBehaviour chooseMode;
 
     void Start()
     {
         chooseMode = GetComponent<ChooseModeBehaviour>();
+        audioSource = GetComponent<AudioSource>();
         initialPosition = transform.localPosition;
         SetShakeMode();
 
-    }
+        audioSource.clip = diceAudioClip;
 
-    private void Update()
+    }
+    private void FixedUpdate()
     {
         // 현재 쉐이크 모드 일 때
         if (ModeManager.Instance.currentMode == ModeManager.Mode.Shake)
@@ -44,8 +52,38 @@ public class ShakeBasketController : MonoBehaviour
 
                 RollingDice(shakeOffset.x, shakeOffset.z); // 주사위 움직임
 
+                // 마우스 움직임이 일정 값 이상일 때
+                float movementThreshold = 0.01f; // 마우스 이동 감지 기준 (더 작은 값으로 설정)
+                if (Mathf.Abs(mouseX) > movementThreshold || Mathf.Abs(mouseY) > movementThreshold)
+                {
+                    // 짧은 랜덤 간격으로 소리 재생
+                    float minCooldown = 0.1f; // 최소 재생 간격
+                    float maxCooldown = 0.2f; // 최대 재생 간격
+                    if (Time.time - lastPlayTime > Random.Range(minCooldown, maxCooldown))
+                    {
+                        audioSource.pitch = Random.Range(0.5f, 0.6f); // 피치 변경으로 다채로운 느낌
+                        audioSource.volume = Random.Range(0.4f, 0.45f); // 음량 조절로 입체감 추가
+                        audioSource.Play();
+                        lastPlayTime = Time.time; // 마지막 재생 시간 갱신
+                    }
+                }
+
+
                 transform.position = initialPosition + shakeOffset; // 컵의 새 위치
             }
+            // 마우스를 떼면
+            if (Input.GetMouseButtonUp(0))
+            {
+                StartCoroutine(ThrowingDiceRoutine(throwingPos.position)); // 던지는 루틴 실행
+            }
+        }
+    }
+    private void Update()
+    {
+        // 현재 쉐이크 모드 일 때
+        if (ModeManager.Instance.currentMode == ModeManager.Mode.Shake)
+        {
+            
             // 마우스를 떼면
             if (Input.GetMouseButtonUp(0))
             {
@@ -57,6 +95,7 @@ public class ShakeBasketController : MonoBehaviour
     // 쉐이크 모드로 전환
     public void SetShakeMode()
     {
+        audioSource.clip = diceAudioClip;
         shakeUI.SetActive(true);
 
         ModeManager.Instance.currentMode = ModeManager.Mode.Shake;
@@ -151,6 +190,7 @@ public class ShakeBasketController : MonoBehaviour
     IEnumerator ThrowingDice(Transform pos)
     {
         yield return new WaitForSeconds(0.1f);
+        audioSource.clip = ThroingAudioclip;
 
         // 주사위를 땅에 던짐
         Vector3 groundPos = pos.position;
@@ -158,6 +198,7 @@ public class ShakeBasketController : MonoBehaviour
         {
             Vector3 shootDirection = (groundPos - dice.transform.position).normalized;
             dice.GetComponent<Rigidbody>().AddForce(shootDirection * 2500, ForceMode.Impulse);
+            audioSource.Play();
         }
 
         // 일정 시간 후 콜라이더를 켜서 주사위 눈 검출
@@ -168,6 +209,7 @@ public class ShakeBasketController : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.5f);
+        audioSource.clip = diceAudioClip;
 
         chooseMode.GetDiceList(); // 주사위 객체 넘겨주기
         diceControllers.Clear(); // 주사위 리스트 초기화

@@ -1,4 +1,3 @@
-using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,13 +13,12 @@ public class DiceController : MonoBehaviour
     }
     public State diceState;
 
-    public float forceMagnitude = 5;
+    public float forceMagnitude = 45f;
     public int diceNumber;
     public Rigidbody rb;
 
     void Start()
     {
-
     }
 
     void Update()

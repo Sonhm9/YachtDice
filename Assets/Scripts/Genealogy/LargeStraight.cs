@@ -65,6 +65,6 @@ public class LargeStraight : MonoBehaviour, IScore
         ScoreManager.Instance.updateScore -= CalculateValue;
         ScoreManager.Instance.clearValue -= ClearValue;
 
-        ScoreManager.Instance.totalValue += value;
+        ScoreManager.Instance.AddTotal(value);
     }
 }

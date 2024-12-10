@@ -7,9 +7,11 @@ public class ScoreBehaviour : MonoBehaviour
     public GameObject pointer;
 
     int selectPointIdx = 0;
+
+    AudioSource audioSource;
     void Start()
     {
-        
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -68,13 +70,15 @@ public class ScoreBehaviour : MonoBehaviour
                 // 스코어 초기화
                 ScoreManager.Instance.PublishClearScore();
 
+                audioSource.Play();
+
                 // 턴 넘기기
                 pointer.SetActive(false);
                 TurnManager.Instance.NextTurn();
 
                 // 쉐이크 모드로 전환
                 GameObject shake = GameObject.FindWithTag("ShakeBasket");
-                shake.GetComponent<ChooseModeBehaviour>().ReturnShake();
+                StartCoroutine(shake.GetComponent<ChooseModeBehaviour>().ReturnShake());
                 shake.GetComponent<ShakeBasketController>().SetShakeMode();
             }
         }

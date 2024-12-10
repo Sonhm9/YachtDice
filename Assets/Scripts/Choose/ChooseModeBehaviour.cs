@@ -20,11 +20,14 @@ public class ChooseModeBehaviour : MonoBehaviour
     public List<DiceController> selectList = new List<DiceController>(); // 선택된 리스트
 
     ShakeBasketController shakeBasketController;
+    AudioSource audioSource;
+    public AudioClip moveDiceClip;
     SelectUI selectUI;
 
     void Start()
     {
         shakeBasketController = GetComponent<ShakeBasketController>();
+        audioSource = GetComponent<AudioSource>();
         selectUI = GetComponent<SelectUI>();
     }
 
@@ -73,6 +76,8 @@ public class ChooseModeBehaviour : MonoBehaviour
                 // 주사위 위치 재정렬
                 StartCoroutine(ArrangeChooseList());
 
+                audioSource.Play();
+
                 // 주사위를 모두 선택했을 때
                 if (currentDiceCount <= 0)
                 {
@@ -117,13 +122,14 @@ public class ChooseModeBehaviour : MonoBehaviour
     }
 
     // 다시 턴이 돌아왔을때 초기화
-    public void ReturnShake()
+    public IEnumerator ReturnShake()
     {
         currentDiceCount = maxDiceCount;
         foreach(var obj in selectList)
         {
             Destroy(obj.gameObject);
         }
+        yield return new WaitForSeconds(0.5f);
         selectList.Clear();
     }
 
@@ -148,25 +154,39 @@ public class ChooseModeBehaviour : MonoBehaviour
         selectUI.UnactiveSelectUI();
 
         yield return new WaitForSeconds(0.5f);
+        audioSource.clip = moveDiceClip;
 
-        for(int i=0; i<chooseList.Count; i++)
+        for (int i = 0; i < chooseList.Count; i++)
         {
             // 선택한 주사위를 위로 이동
-            StartCoroutine(MoveToPosition(chooseList[i].gameObject, selectPosition[selectList.Count].position, chooseList[i].SetRotationForDicenumber(), 0.25f));
+            StartCoroutine(MoveToPosition(
+                chooseList[i].gameObject, // 이동할 오브젝트
+                selectPosition[selectList.Count].position, // 목표 위치
+                chooseList[i].SetRotationForDicenumber(), // 회전 설정
+                0.25f // 이동 시간
+            ));
+            audioSource.Play();
 
             // 선택된 리스트로 이동
-            selectList.Add(chooseList[selectPointIdx]);
+            selectList.Add(chooseList[i]);
 
-            currentDiceCount--; // 현재 주사위 갯수 감소
+            // 현재 선택한 오브젝트를 제거
+            chooseList.RemoveAt(i);
 
-            // 주사위를 모두 선택했을 때
+            currentDiceCount--;
+
             if (currentDiceCount <= 0)
             {
                 TurnManager.Instance.SetScoreMode();
-                Debug.Log("없음");
+                Debug.Log("모든 주사위를 선택했습니다.");
+                break; // 반복 종료
             }
 
-            yield return new WaitForSeconds(0.1f);
+            // `RemoveAt`으로 인해 인덱스를 유지하려면 i 감소
+            i--;
+
+            // 대기 시간
+            yield return new WaitForSeconds(0.25f);
         }
         chooseList.Clear();
     }
@@ -174,6 +194,8 @@ public class ChooseModeBehaviour : MonoBehaviour
     // 선택가능하도록 위치시키는 루틴
     public IEnumerator SetChooseList()
     {
+        audioSource.clip = moveDiceClip;
+
         // 주사위 갯수에 따라 정렬
         StartCoroutine(ArrangeChooseList());
 
@@ -207,6 +229,7 @@ public class ChooseModeBehaviour : MonoBehaviour
 
             // 오브젝트 이동 루틴
             yield return StartCoroutine(MoveToPosition(chooseList[i].gameObject, targetPosition, chooseList[i].SetRotationForDicenumber(), 0.1f));
+            
         }
     }
 

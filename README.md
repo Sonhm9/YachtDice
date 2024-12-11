@@ -9,4 +9,4 @@
 
 
 
-#### [실행 파일.exe](https://drive.google.com/file/d/1iJVqQRy5FogY8_nPNEFgIEs1YaF7rEza/view?usp=sharing)
+#### [실행 파일.zip](https://drive.google.com/file/d/1iJVqQRy5FogY8_nPNEFgIEs1YaF7rEza/view?usp=sharing)
